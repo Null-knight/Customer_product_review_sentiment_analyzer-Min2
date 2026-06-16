@@ -1,6 +1,6 @@
 # Customer Product Review Sentiment Analyzer
 
-Created by Rahul Roy. Project started on June 12, 2026.
+Created by Saikat Roy (Rahul Roy). Project started on June 10, 2026.
 
 Enterprise-inspired local review analyzer for customer product reviews. The app uses the Amazon `Reviews.csv` dataset and provides sentiment prediction, fake/spam risk checks, aspect mining, product analytics, user credibility scoring, and a dashboard/API.
 

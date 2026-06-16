@@ -1,0 +1,6 @@
+fake_block_threshold: 0.75
+fake_review_threshold: 0.55
+spam_threshold: 0.55
+low_quality_threshold: 0.35
+min_review_words: 4
+

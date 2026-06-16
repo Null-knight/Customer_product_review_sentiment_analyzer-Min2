@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Analytics Dashboard</title>
+
+<link rel="stylesheet" href="/static/styles.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="brand">
+
+        <div class="brand-icon">📈</div>
+
+        <div>
+
+            <h1>Product Analytics Dashboard</h1>
+
+            <p>
+                Real-Time Review Intelligence
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="top-actions">
+
+        <a href="/">Dashboard</a>
+
+        <a href="/admin">Admin</a>
+
+        <a href="/docs">API Docs</a>
+
+    </div>
+
+</header>
+
+<main class="dashboard">
+
+    <section class="metrics-grid">
+
+        <article class="metric-card">
+            <div class="metric-icon">📝</div>
+            <div>
+                <span>Total Reviews</span>
+                <strong id="totalReviews">0</strong>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">✅</div>
+            <div>
+                <span>Approved</span>
+                <strong id="approvedCount">0</strong>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">⚠️</div>
+            <div>
+                <span>Review Queue</span>
+                <strong id="reviewCount">0</strong>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">🚫</div>
+            <div>
+                <span>Blocked</span>
+                <strong id="blockedCount">0</strong>
+            </div>
+        </article>
+
+    </section>
+
+    <section class="metrics-grid">
+
+        <article class="metric-card">
+            <div class="metric-icon">😊</div>
+            <div>
+                <span>Positive Reviews</span>
+                <strong id="positiveCount">0</strong>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">😞</div>
+            <div>
+                <span>Negative Reviews</span>
+                <strong id="negativeCount">0</strong>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">🤖</div>
+            <div>
+                <span>Average Fake Score</span>
+                <strong id="fakeAverage">0%</strong>
+            </div>
+        </article>
+
+        <article class="metric-card">
+            <div class="metric-icon">📢</div>
+            <div>
+                <span>Average Spam Score</span>
+                <strong id="spamAverage">0%</strong>
+            </div>
+        </article>
+
+    </section>
+
+    <section class="charts-grid">
+
+        <div class="panel">
+
+            <div class="panel-header">
+                <h2>Sentiment Distribution</h2>
+            </div>
+
+            <canvas id="sentimentChart"></canvas>
+
+        </div>
+
+        <div class="panel">
+
+            <div class="panel-header">
+                <h2>Decision Distribution</h2>
+            </div>
+
+            <canvas id="decisionChart"></canvas>
+
+        </div>
+
+    </section>
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <h2>Recent Analysis Activity</h2>
+
+            <p>
+                Latest reviews processed by the AI engine
+            </p>
+
+        </div>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                <tr>
+
+                    <th>Review ID</th>
+                    <th>Sentiment</th>
+                    <th>Decision</th>
+                    <th>Fake</th>
+                    <th>Spam</th>
+                    <th>Emotion</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody id="activityTable">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+
+    <div>
+        CUSTOMER PRODUCT REVIEW SENTIMENT ANALYZER
+    </div>
+
+    <div>
+        Analytics Module
+    </div>
+
+</footer>
+
+<script>
+
+let sentimentChart;
+let decisionChart;
+
+async function loadAnalytics() {
+
+    const metricsResponse =
+        await fetch("/analytics/metrics");
+
+    const metrics =
+        await metricsResponse.json();
+
+    const predictionsResponse =
+        await fetch(
+            "/admin/recent-predictions?limit=100"
+        );
+
+    const rawPredictions =
+        await predictionsResponse.json();
+
+    const predictions =
+        rawPredictions.map(
+            item => JSON.parse(item)
+        );
+
+    let positive = 0;
+    let negative = 0;
+    let neutral = 0;
+
+    let approve = 0;
+    let review = 0;
+    let block = 0;
+
+    let fakeSum = 0;
+    let spamSum = 0;
+
+    const table =
+        document.querySelector(
+            "#activityTable"
+        );
+
+    table.innerHTML = "";
+
+    predictions.forEach(entry => {
+
+        const result =
+            entry.result;
+
+        const sentiment =
+            result.sentiment || "";
+
+        const decision =
+            result.decision || "";
+
+        if (
+            sentiment.includes(
+                "positive"
+            )
+        ) {
+            positive++;
+        }
+
+        else if (
+            sentiment.includes(
+                "negative"
+            )
+        ) {
+            negative++;
+        }
+
+        else {
+            neutral++;
+        }
+
+        if (
+            decision === "APPROVE"
+        ) {
+            approve++;
+        }
+
+        if (
+            decision === "REVIEW"
+        ) {
+            review++;
+        }
+
+        if (
+            decision === "BLOCK"
+        ) {
+            block++;
+        }
+
+        fakeSum +=
+            result.fake_score || 0;
+
+        spamSum +=
+            result.spam_score || 0;
+
+        const row =
+            document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${result.review_id}</td>
+            <td>${result.sentiment}</td>
+            <td class="${result.decision}">
+                ${result.decision}
+            </td>
+            <td>${(result.fake_score * 100).toFixed(1)}%</td>
+            <td>${(result.spam_score * 100).toFixed(1)}%</td>
+            <td>${result.emotion}</td>
+        `;
+
+        table.appendChild(row);
+
+    });
+
+    document.querySelector(
+        "#totalReviews"
+    ).textContent =
+        predictions.length;
+
+    document.querySelector(
+        "#approvedCount"
+    ).textContent =
+        metrics["decision.approve"] || 0;
+
+    document.querySelector(
+        "#reviewCount"
+    ).textContent =
+        metrics["decision.review"] || 0;
+
+    document.querySelector(
+        "#blockedCount"
+    ).textContent =
+        metrics["decision.block"] || 0;
+
+    document.querySelector(
+        "#positiveCount"
+    ).textContent =
+        positive;
+
+    document.querySelector(
+        "#negativeCount"
+    ).textContent =
+        negative;
+
+    document.querySelector(
+        "#fakeAverage"
+    ).textContent =
+        (
+            fakeSum /
+            predictions.length *
+            100
+        ).toFixed(1) + "%";
+
+    document.querySelector(
+        "#spamAverage"
+    ).textContent =
+        (
+            spamSum /
+            predictions.length *
+            100
+        ).toFixed(1) + "%";
+
+    if (
+        sentimentChart
+    ) {
+        sentimentChart.destroy();
+    }
+
+    if (
+        decisionChart
+    ) {
+        decisionChart.destroy();
+    }
+
+    sentimentChart =
+        new Chart(
+            document.getElementById(
+                "sentimentChart"
+            ),
+            {
+                type:"doughnut",
+
+                data:{
+                    labels:[
+                        "Positive",
+                        "Neutral",
+                        "Negative"
+                    ],
+
+                    datasets:[{
+                        data:[
+                            positive,
+                            neutral,
+                            negative
+                        ]
+                    }]
+                }
+            }
+        );
+
+    decisionChart =
+        new Chart(
+            document.getElementById(
+                "decisionChart"
+            ),
+            {
+                type:"bar",
+
+                data:{
+                    labels:[
+                        "Approve",
+                        "Review",
+                        "Block"
+                    ],
+
+                    datasets:[{
+                        data:[
+                            approve,
+                            review,
+                            block
+                        ]
+                    }]
+                }
+            }
+        );
+}
+
+loadAnalytics();
+
+setInterval(
+    loadAnalytics,
+    10000
+);
+
+</script>
+
+<!-- FLOATING SCROLL CONTROLS -->
+
+<div id="floatingScrollControls">
+
+    <button id="scrollTopBtn" title="Back To Top">
+        ↑
+    </button>
+
+    <button id="scrollBottomBtn" title="Go To Bottom">
+        ↓
+    </button>
+
+</div>
+
+<style>
+
+#floatingScrollControls{
+
+    position:fixed;
+
+    right:24px;
+
+    bottom:24px;
+
+    z-index:999999;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+}
+
+#scrollTopBtn,
+#scrollBottomBtn{
+
+    width:58px;
+
+    height:58px;
+
+    border:none;
+
+    border-radius:50%;
+
+    cursor:pointer;
+
+    font-size:24px;
+
+    font-weight:bold;
+
+    color:white;
+
+    background:
+        rgba(118, 211, 241, 0.4);
+
+    backdrop-filter:blur(12px);
+
+    box-shadow:
+        0 8px 25px rgba(118, 211, 241, 0.4);
+
+    transition:
+        transform .25s ease,
+        opacity .25s ease;
+}
+
+#scrollTopBtn:hover,
+#scrollBottomBtn:hover{
+
+    transform:scale(1.12);
+}
+
+</style>
+
+<script>
+
+const scrollTopBtn =
+    document.getElementById(
+        "scrollTopBtn"
+    );
+
+const scrollBottomBtn =
+    document.getElementById(
+        "scrollBottomBtn"
+    );
+
+scrollTopBtn.addEventListener(
+    "click",
+    () => {
+
+        window.scrollTo({
+
+            top:0,
+
+            behavior:"smooth"
+
+        });
+
+    }
+);
+
+scrollBottomBtn.addEventListener(
+    "click",
+    () => {
+
+        window.scrollTo({
+
+            top:
+                document.documentElement.scrollHeight,
+
+            behavior:"smooth"
+
+        });
+
+    }
+);
+
+function updateFloatingButtons(){
+
+    const currentPosition =
+        window.scrollY;
+
+    const maxPosition =
+        document.documentElement.scrollHeight
+        -
+        window.innerHeight;
+
+    if(currentPosition < 200){
+
+        scrollTopBtn.style.opacity =
+            "0";
+
+        scrollTopBtn.style.pointerEvents =
+            "none";
+
+    }
+
+    else{
+
+        scrollTopBtn.style.opacity =
+            "1";
+
+        scrollTopBtn.style.pointerEvents =
+            "auto";
+
+    }
+
+    if(currentPosition > maxPosition - 200){
+
+        scrollBottomBtn.style.opacity =
+            "0";
+
+        scrollBottomBtn.style.pointerEvents =
+            "none";
+
+    }
+
+    else{
+
+        scrollBottomBtn.style.opacity =
+            "1";
+
+        scrollBottomBtn.style.pointerEvents =
+            "auto";
+
+    }
+
+}
+
+window.addEventListener(
+    "scroll",
+    updateFloatingButtons
+);
+
+window.addEventListener(
+    "load",
+    updateFloatingButtons
+);
+
+</script>
+
+</body>
+
+</html>

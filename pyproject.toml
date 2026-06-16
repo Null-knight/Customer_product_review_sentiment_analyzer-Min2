@@ -1,0 +1,10 @@
+[project]
+name = "customer-product-review-sentiment-analyzer"
+version = "0.1.0"
+description = "Customer product review sentiment, spam, fake-review, aspect, and analytics analyzer."
+authors = [{ name = "Rahul Roy" }]
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+

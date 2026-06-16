@@ -1,0 +1,15 @@
+lowercase: true
+strip_html: true
+normalize_repeated_chars: true
+supported_languages:
+  - english
+  - hindi
+  - hinglish
+  - bengali
+  - tamil
+  - telugu
+  - marathi
+  - gujarati
+  - kannada
+  - malayalam
+

@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <title>CUSTOMER PRODUCT REVIEW SENTIMENT ANALYZER</title>
+
+    <link rel="stylesheet" href="/static/styles.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="topbar">
+
+        <div class="brand">
+            <div class="brand-icon">🧠</div>
+
+            <div>
+                <h1>CUSTOMER PRODUCT REVIEW SENTIMENT ANALYZER</h1>
+                <p>
+                    Sentiment Analysis • Fake Review Detection • Spam Detection •
+                    Product Insights
+                </p>
+            </div>
+        </div>
+
+        <div class="top-actions">
+
+            <a href="/analytics">
+                Analytics
+            </a>
+
+            <a href="/admin">
+                Admin
+            </a>
+
+            <a href="/docs">
+                API Docs
+            </a>
+
+        </div>
+
+    </header>
+
+    <!-- ================= MAIN ================= -->
+
+    <main class="dashboard">
+
+        <!-- ============ METRICS ============ -->
+
+        <section class="metrics-grid">
+
+            <article class="metric-card">
+
+                <div class="metric-icon">📊</div>
+
+                <div>
+                    <span>Total Reviews</span>
+                    <strong id="approved">0</strong>
+                </div>
+
+            </article>
+
+            <article class="metric-card">
+
+                <div class="metric-icon">😊</div>
+
+                <div>
+                    <span>Positive Reviews</span>
+                    <strong id="review">0</strong>
+                </div>
+
+            </article>
+
+            <article class="metric-card">
+
+                <div class="metric-icon">⚠️</div>
+
+                <div>
+                    <span>Suspicious Reviews</span>
+                    <strong id="blocked">0</strong>
+                </div>
+
+            </article>
+
+            <article class="metric-card">
+
+                <div class="metric-icon">🟢</div>
+
+                <div>
+                    <span>Model Status</span>
+                    <strong id="health">Checking...</strong>
+                </div>
+
+            </article>
+
+        </section>
+
+        <!-- ============ CHARTS ============ -->
+
+        <section class="charts-grid">
+
+            <div class="panel">
+
+                <div class="panel-header">
+                    <h2>Sentiment Distribution</h2>
+                </div>
+
+                <canvas id="sentimentChart"></canvas>
+
+            </div>
+
+            <div class="panel">
+
+                <div class="panel-header">
+                    <h2>Review Intelligence</h2>
+                </div>
+
+                <div class="ai-summary">
+
+                    <div class="mini-card">
+                        <span>Sentiment</span>
+                        <strong id="sentimentLabel">Waiting</strong>
+                    </div>
+
+                    <div class="mini-card">
+                        <span>Confidence</span>
+                        <strong id="confidenceLabel">0%</strong>
+                    </div>
+
+                    <div class="mini-card">
+                        <span>Fake Risk</span>
+                        <strong id="fakeLabel">0%</strong>
+                    </div>
+
+                    <div class="mini-card">
+                        <span>Spam Risk</span>
+                        <strong id="spamLabel">0%</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ============ ANALYZER ============ -->
+
+        <section class="workspace">
+
+            <div class="panel">
+
+                <div class="panel-header">
+                    <h2>Review Analyzer</h2>
+                    <p>Analyze customer reviews in real-time</p>
+                </div>
+
+                <form id="reviewForm">
+
+                    <label>
+
+                        Rating
+
+                        <input
+                            type="number"
+                            name="rating"
+                            min="1"
+                            max="5"
+                            value="5">
+
+                    </label>
+
+                    <label>
+
+                        Review Summary
+
+                        <input
+                            name="summary"
+                            value="Excellent product">
+
+                    </label>
+
+                    <label>
+
+                        Review Content
+
+                        <textarea
+                            name="text">The taste is excellent, delivery was fast, packaging was clean, and I would buy this again.</textarea>
+
+                    </label>
+
+                    <button type="submit">
+                        Analyze Review
+                    </button>
+
+                </form>
+
+            </div>
+
+            <!-- AI RESULT PANEL -->
+
+            <div class="panel result-panel">
+
+                <div class="panel-header">
+                    <h2>AI Analysis Result</h2>
+                </div>
+
+                <div id="resultCard">
+
+                    <div class="result-placeholder">
+
+                        <div class="big-icon">
+                            🤖
+                        </div>
+
+                        <h3>
+                            Ready For Analysis
+                        </h3>
+
+                        <p>
+                            Submit a review to receive sentiment,
+                            fake-review, and spam analysis.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <!-- Hidden JSON (kept for compatibility) -->
+
+                <pre id="result" style="display:none;"></pre>
+
+            </div>
+
+        </section>
+
+        <!-- ============ LIVE FEED ============ -->
+
+        <section class="panel">
+
+            <div class="panel-header">
+                <h2>Live Review Feed</h2>
+                <p>Latest analyzed reviews</p>
+            </div>
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Decision</th>
+                            <th>Sentiment</th>
+                            <th>Fake Risk</th>
+                            <th>Spam Risk</th>
+                            <th>Reason</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="stream"></tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer>
+
+        <div>
+            CUSTOMER PRODUCT REVIEW SENTIMENT ANALYZER
+        </div>
+
+        <div>
+            Rahul Roy • Started February 12, 2026
+        </div>
+
+    </footer>
+
+    <script src="/static/app.js"></script>
+
+</body>
+
+</html>
